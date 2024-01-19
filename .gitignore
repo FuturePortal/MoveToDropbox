@@ -1,0 +1,7 @@
+# Editors
+
+.idea/
+
+# Generated files
+
+node_modules/

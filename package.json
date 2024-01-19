@@ -1,0 +1,18 @@
+{
+	"name": "@futureportal/upload-to-dropbox",
+	"version": "0.0.1",
+	"description": "Uploads files from the mounted directory to dropbox",
+	"main": "index.ts",
+	"author": {
+		"name": "Rick van der Staaij",
+		"url": "https://rick.nu"
+	},
+	"license": "MIT",
+	"devDependencies": {
+		"@trivago/prettier-plugin-sort-imports": "^4.3.0",
+		"prettier": "^3.2.4"
+	},
+	"dependencies": {
+		"dropbox-v2-api": "^2.5.10"
+	}
+}
