@@ -21,9 +21,10 @@ Creating your own dropbox app is required for this container to work.
 - Generate a `DROPBOX_REFRESH_TOKEN`:
     - Get your access token from (replace DROPBOX_APP_KEY)
     https://www.dropbox.com/oauth2/authorize?client_id=DROPBOX_APP_KEY&token_access_type=offline&response_type=code
-    - ```bash
+    - Authorize at the API to get a refresh token (replace BASIC_AUTH with your access token):
+      ```bash
       curl --location --request POST 'https://api.dropboxapi.com/oauth2/token' \
-      --header "Authorization: Basic $BASIC_AUTH" \
+      --header "Authorization: Basic BASIC_AUTH" \
       --header 'Content-Type: application/x-www-form-urlencoded' \
       --data-urlencode "code=$ACCESS_CODE_GENERATED" \
       --data-urlencode 'grant_type=authorization_code'
@@ -39,9 +40,8 @@ Creating your own dropbox app is required for this container to work.
 
 ## Running locally
 
-- `./Taskfile`
-
-Create file `./src/.env` with the environment variables above.
+- run `./Taskfile` in the project root
+- Create file `./src/.env` with the environment variables above.
 
 ## Running with docker
 
