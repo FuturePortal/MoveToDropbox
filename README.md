@@ -35,7 +35,7 @@ docker run \
     --env DROPBOX_APP_KEY=redacted \
     --env DROPBOX_APP_SECRET=redacted \
     --env DROPBOX_REFRESH_TOKEN=redacted \
-    registry.gitlab.com/futureportal/uploadtodropbox:latest
+    rickvdstaaij/move-to-dropbox:latest
 ```
 
 ## Running with docker compose
@@ -47,7 +47,7 @@ version: '3'
 
 services:
   dropbox:
-    image: registry.gitlab.com/futureportal/uploadtodropbox:latest
+    image: rickvdstaaij/move-to-dropbox:latest
     container_name: dropbox-backup-upload
     environment:
       - DROPBOX_APP_KEY=redacted
