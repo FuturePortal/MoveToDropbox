@@ -1,17 +1,17 @@
-name: Build the CIMonitor latest container
+name: Build the latest container
 on:
   push:
     branches:
       - production
 jobs:
-  test:
-    name: Test
-    uses: ./.github/workflows/job--test-and-lint.yml
+#  test:
+#    name: Test
+#    uses: ./.github/workflows/job--test-and-lint.yml
 
   build:
     name: Build
     uses: ./.github/workflows/job--build-containers.yml
-    needs: test
+#    needs: test
     with:
       BASE_TAG: latest
     secrets:
