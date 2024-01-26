@@ -9,10 +9,7 @@
 	},
 	"license": "MIT",
 	"devDependencies": {
-		"@trivago/prettier-plugin-sort-imports": "^4.3.0",
+		"@prettier/plugin-php": "^0.22.1",
 		"prettier": "^3.2.4"
-	},
-	"dependencies": {
-		"dropbox-v2-api": "^2.5.10"
 	}
 }

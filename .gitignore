@@ -5,3 +5,5 @@
 # Generated files
 
 node_modules/
+src/vendor/
+src/.env

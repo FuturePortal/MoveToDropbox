@@ -1,5 +1,4 @@
 #!/bin/bash
-set -eo pipefail
 
 # =========================================================
 # Taskfile gives you a set of quick tasks for your project
@@ -11,74 +10,47 @@ set -eo pipefail
 # =========================================================
 
 function task:init { ## Initialise the project for local development
-	docker:down
-	docker:build
-	docker:start
+	task:build
 	project:update
 	task:help
 }
 
 function task:update { ## Update all dependencies and files
+	project:update
+}
+
+function project:update {
 	title "Installing dependencies"
-	yarn install
+	docker:run composer install
 }
 
 # =========================================================
 ## Local development
 # =========================================================
 
-function task:start { ## Start the project containers via docker compose
-	docker:start
+function task:build { ## (re)build the project container
+	title "Building local container"
+	docker build --target local --tag upload-to-dropbox:local .
+	title "Building production container"
+	docker build --target production --tag upload-to-dropbox:production .
 }
 
-function task:stop { ## Stop the project containers
-	docker:stop
+function task:run { ## Run the CLI
+	title "Running the production container"
+	docker run -ti --rm --volume $PWD/src:/opt/dropbox-uploader --user `id -u`:`id -g` --name upload-to-dropbox upload-to-dropbox:production "$@"
 }
 
-function task:build { ## (re)build the project containers
-	docker:build
-}
-
-function task:restart { ## Restart the project containers
-	docker:stop
-	docker:start
-}
-
-function task:logs { ## Show container logs
-	docker:logs
+function task:shell { ## Open the local development shell
+	title "Running the development shell"
+	docker:run /bin/sh
 }
 
 # =========================================================
 # Docker
 # =========================================================
 
-function docker:compose {
-	USERID=$(id -u) GROUPID=$(id -g) docker compose "$@"
-}
-
-function docker:start {
-	docker:compose up --detach
-}
-
-function docker:stop {
-	title "Stopping project containers"
-	docker network disconnect nawcast development-proxy || true
-	docker:compose stop
-}
-
-function docker:build {
-	title "Building project containers"
-	docker:compose build --no-cache
-}
-
-function docker:down {
-	title "Destroying project containers"
-	docker:compose down --volumes
-}
-
-function docker:logs {
-	title "Showing container logs"
-	docker:compose logs --tail="10" --follow
+function docker:run {
+	docker run -ti --rm --volume $PWD/src:/opt/dropbox-uploader --user `id -u`:`id -g` upload-to-dropbox:local "$@"
 }
 
 # =========================================================
@@ -133,5 +105,6 @@ function task:shorthand { ## Create CLI shorthand task instead of ./Taskfile
 }
 
 # Execute tasks (defaults to help)
+set -eo pipefail
 banner
 "task:${@:-help}"
