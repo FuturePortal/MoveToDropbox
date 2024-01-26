@@ -4,14 +4,9 @@ on:
     branches:
       - production
 jobs:
-#  test:
-#    name: Test
-#    uses: ./.github/workflows/job--test-and-lint.yml
-
   build:
     name: Build
     uses: ./.github/workflows/job--build-containers.yml
-#    needs: test
     with:
       BASE_TAG: latest
     secrets:

@@ -1,9 +1,0 @@
-#name: PR codestyle tests
-#on:
-#  pull_request:
-#    branches:
-#      - production
-#jobs:
-#  test:
-#    name: Test
-#    uses: ./.github/workflows/job--test-and-lint.yml
