@@ -71,7 +71,7 @@ class UploadCommand extends Command
 				'connect_timeout' => 30,  // 30 seconds to establish connection
 			]);
 
-			$client = new Client($tokenProvider, $guzzleClient);
+			$client = new Client($tokenProvider, $guzzleClient, 1024 * 1024 * 100);
 		} catch (\Exception $exception) {
 			$output->writeln("Error setting up dropbox client.");
 			$output->writeln($exception->getMessage());
