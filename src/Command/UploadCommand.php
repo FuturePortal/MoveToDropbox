@@ -73,10 +73,12 @@ class UploadCommand extends Command
 		$output->writeln('Uploading files to the cloud...');
 
 		foreach ($files as $file) {
-			$output->write("Uploading $file... ");
 			try {
 				$localFile = __DIR__ . '/../uploads/' . $file;
 				$fileSize = filesize($localFile);
+				$fileSizeMB = round($fileSize / (1024 * 1024), 2);
+
+				$output->writeln("Uploading $file ({$fileSizeMB}MB)...");
 
 				// Dropbox simple upload limit is 150MB
 				// Use chunked upload for files larger than 150MB
@@ -86,23 +88,23 @@ class UploadCommand extends Command
 					// Use chunked upload for large files
 					// Chunk size of 8MB is recommended for optimal performance
 					$chunkSize = 8 * 1024 * 1024; // 8MB
-					$output->write("(large file, using chunked upload) ");
+					$output->writeln("  Using chunked upload (file > 150MB)...");
 
 					$fileHandle = fopen($localFile, 'r');
 					$client->uploadChunked($file, $fileHandle, $chunkSize);
 					fclose($fileHandle);
 				} else {
 					// Use simple upload for smaller files
+					$output->writeln("  Using standard upload...");
 					$client->upload($file, file_get_contents($localFile));
 				}
 
-				$output->write("OK");
+				$output->writeln("  ✓ Upload successful");
 				unlink($localFile);
-				$output->writeln(".");
+				$output->writeln("  ✓ Local file deleted");
 			}
 			catch (\Exception $exception) {
-				$output->writeln("ERROR");
-				$output->writeln($exception->getMessage());
+				$output->writeln("  ✗ ERROR: " . $exception->getMessage());
 			}
 		}
 
