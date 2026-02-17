@@ -85,13 +85,10 @@ class UploadCommand extends Command
 				$maxSimpleUploadSize = 150 * 1024 * 1024; // 150MB in bytes
 
 				if ($fileSize > $maxSimpleUploadSize) {
-					// Use chunked upload for large files
-					// Chunk size of 8MB is recommended for optimal performance
-					$chunkSize = 8 * 1024 * 1024; // 8MB
 					$output->writeln("  Using chunked upload (file > 150MB)...");
 
 					$fileHandle = fopen($localFile, 'r');
-					$client->uploadChunked($file, $fileHandle, $chunkSize);
+					$client->uploadChunked($file, $fileHandle);
 					fclose($fileHandle);
 				} else {
 					// Use simple upload for smaller files
