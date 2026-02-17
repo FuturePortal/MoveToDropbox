@@ -16,7 +16,6 @@ A Deno-based CLI tool that uploads files from a local directory to Dropbox and o
 
 ## Prerequisites
 
-- [Deno](https://deno.land/) installed (v1.40+)
 - A Dropbox app with API credentials
 
 ## Setup
@@ -109,21 +108,13 @@ docker run \
     --env DROPBOX_REFRESH_TOKEN=your_token \
     futureportal/dropbox-backup:latest upload
 
-# Clean old files (keeps 10 newest)
+# Clean dropbox folder
 docker run \
     --rm \
     --env DROPBOX_APP_KEY=your_key \
     --env DROPBOX_APP_SECRET=your_secret \
     --env DROPBOX_REFRESH_TOKEN=your_token \
-    futureportal/dropbox-backup:latest clean
-
-# Clean with custom file count
-docker run \
-    --rm \
-    --env DROPBOX_APP_KEY=your_key \
-    --env DROPBOX_APP_SECRET=your_secret \
-    --env DROPBOX_REFRESH_TOKEN=your_token \
-    --env DROPBOX_KEEP_FILES=5 \
+    --env DROPBOX_KEEP_FILES=7 \
     futureportal/dropbox-backup:latest clean
 ```
 
