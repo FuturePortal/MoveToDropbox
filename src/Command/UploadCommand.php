@@ -79,8 +79,8 @@ class UploadCommand extends Command
 				$fileSizeMB = round($fileSize / (1024 * 1024), 2);
 
 				$output->writeln("Uploading $file ({$fileSizeMB}MB)...");
+				$startTime = microtime(true);
 
-				// Open file as a stream to avoid loading entire file into memory
 				$fileHandle = fopen($localFile, 'r');
 				if ($fileHandle === false) {
 					throw new \Exception("Failed to open file: $localFile");
@@ -88,7 +88,8 @@ class UploadCommand extends Command
 
 				$client->upload($file, $fileHandle);
 
-				$output->writeln("  ✓ Upload successful");
+				$elapsed = round(microtime(true) - $startTime, 2);
+				$output->writeln("  ✓ Upload successful ({$elapsed}s)");
 				unlink($localFile);
 				$output->writeln("  ✓ Local file deleted");
 			}
