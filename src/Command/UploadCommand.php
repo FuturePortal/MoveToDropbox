@@ -80,21 +80,13 @@ class UploadCommand extends Command
 
 				$output->writeln("Uploading $file ({$fileSizeMB}MB)...");
 
-				// Dropbox simple upload limit is 150MB
-				// Use chunked upload for files larger than 150MB
-				$maxSimpleUploadSize = 150 * 1024 * 1024; // 150MB in bytes
-
-				if ($fileSize > $maxSimpleUploadSize) {
-					$output->writeln("  Using chunked upload (file > 150MB)...");
-
-					$fileHandle = fopen($localFile, 'r');
-					$client->uploadChunked($file, $fileHandle);
-					fclose($fileHandle);
-				} else {
-					// Use simple upload for smaller files
-					$output->writeln("  Using standard upload...");
-					$client->upload($file, file_get_contents($localFile));
+				// Open file as a stream to avoid loading entire file into memory
+				$fileHandle = fopen($localFile, 'r');
+				if ($fileHandle === false) {
+					throw new \Exception("Failed to open file: $localFile");
 				}
+
+				$client->upload($file, $fileHandle);
 
 				$output->writeln("  ✓ Upload successful");
 				unlink($localFile);
