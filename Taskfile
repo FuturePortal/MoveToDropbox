@@ -11,63 +11,65 @@
 
 function task:init { ## Initialise the project for local development
 	task:build
-	project:update
 	task:help
 }
 
-function task:update { ## Update all dependencies and files
-	project:update
-}
-
-function project:update {
-	title "Installing dependencies"
-	docker:run composer install
+function task:update { ## Update Deno dependencies
+	title "Updating Deno dependencies"
+	deno install --allow-scripts
 }
 
 # =========================================================
 ## Local development
 # =========================================================
 
-function task:build { ## (re)build the project container
-	title "Building local container"
-	docker build --target local --tag upload-to-dropbox:local .
-	title "Building production container"
-	docker build --target production --tag upload-to-dropbox:production .
+function task:build { ## Build the Docker container
+	title "Building Docker container"
+	docker build -t move-to-dropbox .
 }
 
-function task:run { ## Run the CLI
-	title "Running the production container"
-	docker run -ti --rm --volume $PWD/src:/opt/dropbox-uploader --user `id -u`:`id -g` --name upload-to-dropbox upload-to-dropbox:production "$@"
+function task:run { ## Run the upload command
+	title "Running upload command"
+	deno task upload
 }
 
-function task:shell { ## Open the local development shell
-	title "Running the development shell"
-	docker:run /bin/sh
+function task:dev { ## Run with development flags
+	title "Running in development mode"
+	deno run --allow-read --allow-write --allow-env --allow-net src/cli.ts
 }
 
-# =========================================================
-# Docker
-# =========================================================
-
-function docker:run {
-	docker run -ti --rm --volume $PWD/src:/opt/dropbox-uploader --user `id -u`:`id -g` upload-to-dropbox:local "$@"
+function task:shell { ## Open a shell in the Docker container
+	title "Running shell in container"
+	docker run -ti --rm --volume $PWD/src/uploads:/app/src/uploads move-to-dropbox /bin/sh
 }
 
-# =========================================================
-# Automation
-# =========================================================
-
-function task:pre-commit {
-	title "Linting staged files"
-	lint-staged
-	title "Committing"
+function task:docker-run { ## Run the CLI in Docker
+	title "Running the container"
+	docker run --rm --volume $PWD/src/uploads:/app/src/uploads --env-file .env move-to-dropbox
 }
 
 # =========================================================
-## Taskfile
+# Code Quality
 # =========================================================
 
-PATH=./node_modules/.bin:$PATH
+function task:fmt { ## Format code with Deno
+	title "Formatting code"
+	deno fmt src/
+}
+
+function task:lint { ## Lint code with Deno
+	title "Linting code"
+	deno lint src/
+}
+
+function task:check { ## Type check the code
+	title "Type checking"
+	deno check src/cli.ts
+}
+
+# =========================================================
+# Taskfile
+# =========================================================
 
 BLUE=$(printf '\033[36m')
 YELLOW=$(printf '\033[33m')
@@ -79,7 +81,7 @@ function title {
 
 function banner {
 	echo " "
-	echo "Docker Upload To Dropbox"
+	echo "Dropbox Uploader (Deno)"
 }
 
 function task:help { ## Show all available tasks
@@ -89,19 +91,6 @@ function task:help { ## Show all available tasks
 		sed -E "s/[#]{2,}[ ]*/${RESET}/g" |\
 		sed -E "s/function task:*/  /g"
 	echo -e "\n${BLUE}Usage:${RESET} $0 ${YELLOW}<task>${RESET} <args>"
-}
-
-function task:shorthand { ## Create CLI shorthand task instead of ./Taskfile
-	title "Creating task shorthand"
-	if [ -f /usr/local/bin/task ]
-	then
-		echo "/usr/local/bin/task already exists."
-	else
-		echo -e "You are about to create /usr/local/bin/task that requires root permission..."
-		sudo curl --location --silent --output /usr/local/bin/task https://enri.se/taskfile-bin
-		sudo chmod +x /usr/local/bin/task
-	fi
-	echo -e "${BLUE}You can now use:${RESET} task ${YELLOW}<task>${RESET} <args>"
 }
 
 # Execute tasks (defaults to help)

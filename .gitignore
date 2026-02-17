@@ -1,9 +1,16 @@
 # Editors
-
 .idea/
+.vscode/
 
-# Generated files
+# Environment
+.env
 
+# Deno
+deno.lock
+
+# Dependencies
 node_modules/
-src/vendor/
-src/.env
+
+# Uploads (backup files)
+src/uploads/*
+!src/uploads/.gitkeep

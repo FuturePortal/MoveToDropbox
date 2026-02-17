@@ -1,15 +1,14 @@
 {
-	"display": "Node 20",
-
 	"compilerOptions": {
-		"lib": ["es2023"],
-		"module": "node16",
-		"target": "es2022",
-
+		"lib": ["deno.window"],
 		"strict": true,
-		"esModuleInterop": true,
-		"skipLibCheck": true,
-		"forceConsistentCasingInFileNames": true,
-		"moduleResolution": "node16"
-	}
+		"allowImportingTsExtensions": true,
+		"noEmit": true,
+		"moduleResolution": "bundler",
+		"module": "esnext",
+		"target": "esnext",
+		"jsx": "react-jsx",
+		"jsxImportSource": "react"
+	},
+	"exclude": ["node_modules", "src/uploads"]
 }

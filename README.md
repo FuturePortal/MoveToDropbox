@@ -1,67 +1,109 @@
 # Move to Dropbox
 
-1) Uploads all files from the mounted folder to dropbox
-2) Removes the files after a successful upload
+A Deno-based CLI tool that uploads files from a local directory to Dropbox and optionally removes them after successful upload. Perfect for automated backups!
 
-Ideal for back-ups.
+## Features
 
-Known limitations:
+- 🚀 Built with **Deno** and TypeScript for modern, secure runtime
+- 📦 Uses the official **Dropbox SDK** (npm:dropbox)
+- 🔐 OAuth2 refresh token authentication with automatic token caching
+- 🗑️ Automatically deletes local files after successful upload
+- ⚡ Clean, async/await based code
+- 📊 Progress tracking with file sizes and upload times
+- 💪 **Large file support** - handles files of any size using chunked uploads (tested with multi-GB files)
+- 🧩 Memory efficient - streams files in 8MB chunks instead of loading into memory
 
-- Breaks when there are folders in your locally mounted folder (this is not supported)
+## Prerequisites
 
-## Create your dropbox app
+- [Deno](https://deno.land/) installed (v1.40+)
+- A Dropbox app with API credentials
 
-Creating your own dropbox app is required for this container to work.
+## Setup
 
-- Go to https://www.dropbox.com/developers
-- Create a new app
-- Make sure your app controls its own folder (not your entire dropbox)
-- Make sure your app has read and write access
-- Copy the `DROPBOX_APP_KEY` and `DROPBOX_REFRESH_TOKEN`
-- Generate a `DROPBOX_REFRESH_TOKEN`:
-    - Get your access token from (replace DROPBOX_APP_KEY)
-    https://www.dropbox.com/oauth2/authorize?client_id=DROPBOX_APP_KEY&token_access_type=offline&response_type=code
-    - Authorize at the API to get a refresh token (replace BASIC_AUTH with your access token):
-      ```bash
-      curl --location --request POST 'https://api.dropboxapi.com/oauth2/token' \
-      --header "Authorization: Basic BASIC_AUTH" \
-      --header 'Content-Type: application/x-www-form-urlencoded' \
-      --data-urlencode "code=$ACCESS_CODE_GENERATED" \
-      --data-urlencode 'grant_type=authorization_code'
-      ```
-    - Grab the refresh token from the response.
+### 1. Create your Dropbox app
 
-## Environment variables
+Creating your own Dropbox app is required for this tool to work.
 
-- `DROPBOX_APP_KEY`: create your own dropbox app to get this
-- `DROPBOX_APP_SECRET`: create your own dropbox app to get this
-- `DROPBOX_REFRESH_TOKEN`: See [the secton above](#create-your-dropbox-app)
-- Mount the folder (of which you want to move its files to dropbox) to `/opt/dropbox-uploader/uploads/`
+- Go to https://www.dropbox.com/developers/apps
+- Click "Create app"
+- Choose "Scoped access" API
+- Choose "App folder" access type (or "Full Dropbox" if you need it)
+- Name your app
+- In the app settings, copy the `App key` and `App secret`
 
-## Running locally
+### 2. Generate a refresh token
 
-- run `./Taskfile` in the project root
-- Create file `./src/.env` with the environment variables above.
+You'll need to generate a refresh token for long-term access:
 
-## Running with docker
+1. Get your authorization code (replace `YOUR_APP_KEY`):
+   ```
+   https://www.dropbox.com/oauth2/authorize?client_id=YOUR_APP_KEY&token_access_type=offline&response_type=code
+   ```
 
-Run the following docker command. In this example we mounted to `./backups` folder.
+2. Visit the URL and authorize the app. You'll receive an authorization code.
 
-```bash
-docker run \
-    --rm \
-    --tty \
-    --interactive \
-    --volume ./backups:/opt/dropbox-uploader/uploads \
-    --env DROPBOX_APP_KEY=redacted \
-    --env DROPBOX_APP_SECRET=redacted \
-    --env DROPBOX_REFRESH_TOKEN=redacted \
-    rickvdstaaij/move-to-dropbox:latest
+3. Exchange it for a refresh token (replace values):
+   ```bash
+   curl --request POST 'https://api.dropboxapi.com/oauth2/token' \
+     --header 'Content-Type: application/x-www-form-urlencoded' \
+     --data-urlencode 'code=YOUR_AUTH_CODE' \
+     --data-urlencode 'grant_type=authorization_code' \
+     --data-urlencode 'client_id=YOUR_APP_KEY' \
+     --data-urlencode 'client_secret=YOUR_APP_SECRET'
+   ```
+
+4. Save the `refresh_token` from the response.
+
+### 3. Configure environment
+
+Create a `.env` file in the project root (or set environment variables):
+
+```env
+DROPBOX_APP_KEY=your_app_key_here
+DROPBOX_APP_SECRET=your_app_secret_here
+DROPBOX_REFRESH_TOKEN=your_refresh_token_here
+
+# Optional: Custom uploads directory (defaults to /app/uploads)
+# UPLOADS_DIR=/custom/path/to/uploads
 ```
 
-## Running with docker compose
+## Usage
 
-Add this to `docker-compose.yml`, and run `docker compose up`. In this example we mounted to `./backups` folder.
+### Run with Deno task
+
+```bash
+deno task upload
+```
+
+### Run directly
+
+```bash
+deno run --allow-read --allow-write --allow-env --allow-net src/cli.ts
+```
+
+### Run with custom uploads directory
+
+Edit [src/cli.ts](src/cli.ts#L38) to change the uploads directory path.
+
+## Running with Docker
+
+Build and run with Docker:
+
+```bash
+```bash
+docker build -t move-to-dropbox .
+docker run \
+    --rm \
+    --volume ./src/uploads:/app/src/uploads \
+    --env DROPBOX_APP_KEY=your_key \
+    --env DROPBOX_APP_SECRET=your_secret \
+    --env DROPBOX_REFRESH_TOKEN=your_token \
+    move-to-dropbox
+```
+
+### Docker Compose
+
+Create a `docker-compose.yml`:
 
 ```yml
 version: '3'
@@ -69,11 +111,54 @@ version: '3'
 services:
   dropbox:
     image: rickvdstaaij/move-to-dropbox:latest
-    container_name: dropbox-backup-upload
+    container_name: dropbox-uploader
     environment:
-      - DROPBOX_APP_KEY=redacted
-      - DROPBOX_APP_SECRET=redacted
-      - DROPBOX_REFRESH_TOKEN=redacted
+      - DROPBOX_APP_KEY=${DROPBOX_APP_KEY}
+      - DROPBOX_APP_SECRET=${DROPBOX_APP_SECRET}
+      - DROPBOX_REFRESH_TOKEN=${DROPBOX_REFRESH_TOKEN}
     volumes:
-      - ./backups:/opt/dropbox-uploader/uploads
+      - ./backups:/app/uploads
 ```
+
+Then run:
+
+```bash
+docker compose pull   # Pull latest image
+docker compose up -d  # Run in detached mode
+```
+
+## Project Structure
+
+```
+src/
+├── cli.ts                           # Main CLI entry point
+├── auth/
+│   └── dropbox-token-provider.ts   # OAuth2 token management
+├── commands/
+│   └── upload-command.ts           # Upload logic
+└── uploads/                        # Place files here to upload
+```
+
+## How It Works
+
+1. Scans the `src/uploads` directory for files
+2. Authenticates with Dropbox using refresh token
+3. Uploads each file to your Dropbox app folder:
+   - **Small files** (<150MB): Direct upload via `filesUpload`
+   - **Large files** (≥150MB): Chunked upload via upload session API (8MB chunks)
+4. Shows real-time progress for large files
+5. Deletes local files after successful upload
+6. Reports timestamps and upload times
+
+## Known Limitations
+
+- Only uploads files (subdirectories are ignored)
+- Files are uploaded to the root of your Dropbox app folder
+
+## License
+
+MIT
+
+## Author
+
+Rick van der Staaij - https://rick.nu

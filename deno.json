@@ -1,0 +1,24 @@
+{
+	"nodeModulesDir": "auto",
+	"tasks": {
+		"upload": "deno run --allow-read --allow-write --allow-env --allow-net src/cli.ts"
+	},
+	"imports": {
+		"dropbox": "npm:dropbox@^10.34.0",
+		"@std/dotenv": "jsr:@std/dotenv@^0.225.0",
+		"@std/path": "jsr:@std/path@^1.0.8",
+		"@std/fs": "jsr:@std/fs@^1.0.8"
+	},
+	"fmt": {
+		"useTabs": true,
+		"lineWidth": 100,
+		"indentWidth": 2,
+		"semiColons": true,
+		"singleQuote": false,
+		"proseWrap": "preserve",
+		"include": ["src/"]
+	},
+	"lint": {
+		"include": ["src/"]
+	}
+}

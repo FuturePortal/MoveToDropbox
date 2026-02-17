@@ -1,27 +1,16 @@
-FROM php:8.3-cli AS base
+FROM denoland/deno:2.1.4
 
-COPY ./src /opt/dropbox-uploader
+# Set working directory
+WORKDIR /app
 
-WORKDIR /opt/dropbox-uploader
+# Copy dependency files
+COPY deno.json deno.lock* ./
 
-FROM base AS local
+# Copy source code
+COPY src/ ./src/
 
-RUN apt update && apt install zip unzip
+# Cache dependencies
+RUN deno install --entrypoint src/cli.ts
 
-COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
-
-FROM local as dependencies
-
-COPY ./src /opt/dropbox-uploader
-
-RUN composer install --no-scripts --ignore-platform-reqs --no-ansi --no-interaction --optimize-autoloader
-
-FROM base AS production
-
-COPY ./src /opt/dropbox-uploader
-
-COPY --from=dependencies /opt/dropbox-uploader/vendor /opt/dropbox-uploader/vendor
-
-ENTRYPOINT ["php", "/opt/dropbox-uploader/cli.php"]
-
-CMD ["upload"]
+# Run the CLI
+CMD ["task", "upload"]

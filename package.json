@@ -1,15 +1,17 @@
 {
 	"name": "@futureportal/upload-to-dropbox",
-	"version": "0.0.1",
-	"description": "Uploads files from the mounted directory to dropbox",
-	"main": "index.ts",
+	"version": "1.0.0",
+	"description": "Uploads files from the mounted directory to Dropbox using Deno",
+	"type": "module",
+	"scripts": {
+		"upload": "deno task upload"
+	},
 	"author": {
 		"name": "Rick van der Staaij",
 		"url": "https://rick.nu"
 	},
 	"license": "MIT",
 	"devDependencies": {
-		"@prettier/plugin-php": "^0.22.1",
 		"prettier": "^3.2.4"
 	}
 }

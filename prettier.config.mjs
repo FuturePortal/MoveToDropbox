@@ -1,9 +1,10 @@
 export default {
-	plugins: ["@prettier/plugin-php"],
-	printWidth: 120,
+	printWidth: 100,
 	semi: true,
 	useTabs: true,
-	singleQuote: true,
+	tabWidth: 2,
+	singleQuote: false,
+	trailingComma: "all",
 	bracketSpacing: true,
-	trailingComma: 'es5',
+	arrowParens: "always",
 };
