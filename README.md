@@ -62,9 +62,6 @@ Create a `.env` file in the project root (or set environment variables):
 DROPBOX_APP_KEY=your_app_key_here
 DROPBOX_APP_SECRET=your_app_secret_here
 DROPBOX_REFRESH_TOKEN=your_refresh_token_here
-
-# Optional: Custom uploads directory (defaults to /app/uploads)
-# UPLOADS_DIR=/custom/path/to/uploads
 ```
 
 ## Usage
@@ -81,24 +78,18 @@ deno task upload
 deno run --allow-read --allow-write --allow-env --allow-net src/cli.ts
 ```
 
-### Run with custom uploads directory
-
-Edit [src/cli.ts](src/cli.ts#L38) to change the uploads directory path.
-
 ## Running with Docker
 
 Build and run with Docker:
 
 ```bash
-```bash
-docker build -t move-to-dropbox .
 docker run \
     --rm \
-    --volume ./src/uploads:/app/src/uploads \
+    --volume ./backups:/app/uploads \
     --env DROPBOX_APP_KEY=your_key \
     --env DROPBOX_APP_SECRET=your_secret \
     --env DROPBOX_REFRESH_TOKEN=your_token \
-    move-to-dropbox
+    futureportal/dropbox-backup:latest
 ```
 
 ### Docker Compose
@@ -110,7 +101,7 @@ version: '3'
 
 services:
   dropbox:
-    image: rickvdstaaij/move-to-dropbox:latest
+    image: futureportal/dropbox-backup:latest
     container_name: dropbox-uploader
     environment:
       - DROPBOX_APP_KEY=${DROPBOX_APP_KEY}

@@ -25,7 +25,7 @@ function task:update { ## Update Deno dependencies
 
 function task:build { ## Build the Docker container
 	title "Building Docker container"
-	docker build -t move-to-dropbox .
+	docker build -t dropbox-backup .
 }
 
 function task:run { ## Run the upload command
@@ -40,12 +40,12 @@ function task:dev { ## Run with development flags
 
 function task:shell { ## Open a shell in the Docker container
 	title "Running shell in container"
-	docker run -ti --rm --volume $PWD/src/uploads:/app/src/uploads move-to-dropbox /bin/sh
+	docker run -ti --rm --volume $PWD/src/uploads:/app/uploads dropbox-backup /bin/sh
 }
 
 function task:docker-run { ## Run the CLI in Docker
 	title "Running the container"
-	docker run --rm --volume $PWD/src/uploads:/app/src/uploads --env-file .env move-to-dropbox
+	docker run --rm --volume $PWD/src/uploads:/app/uploads --env-file .env dropbox-backup
 }
 
 # =========================================================
