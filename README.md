@@ -12,6 +12,7 @@ A Deno-based CLI tool that uploads files from a local directory to Dropbox and o
 - 📊 Progress tracking with file sizes and upload times
 - 💪 **Large file support** - handles files of any size using chunked uploads (tested with multi-GB files)
 - 🧩 Memory efficient - streams files in 8MB chunks instead of loading into memory
+- 🏗️ **Multi-architecture support** - runs on AMD64, ARM64, and ARM/v7 (Raspberry Pi compatible)
 
 ## Prerequisites
 
