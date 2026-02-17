@@ -9,6 +9,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Spatie\Dropbox\Client;
+use GuzzleHttp\Client as GuzzleClient;
 
 #[AsCommand(
 	name: 'upload',
@@ -63,7 +64,14 @@ class UploadCommand extends Command
 	{
 		try {
 			$tokenProvider = new DropboxTokenProvider();
-			$client = new Client($tokenProvider);
+
+			// Create Guzzle client with reasonable timeouts
+			$guzzleClient = new GuzzleClient([
+				'timeout' => 300,  // 5 minutes for each request
+				'connect_timeout' => 30,  // 30 seconds to establish connection
+			]);
+
+			$client = new Client($tokenProvider, $guzzleClient);
 		} catch (\Exception $exception) {
 			$output->writeln("Error setting up dropbox client.");
 			$output->writeln($exception->getMessage());
@@ -78,7 +86,8 @@ class UploadCommand extends Command
 				$fileSize = filesize($localFile);
 				$fileSizeMB = round($fileSize / (1024 * 1024), 2);
 
-				$output->writeln("Uploading $file ({$fileSizeMB}MB)...");
+				$timestamp = date('H:i');
+				$output->writeln("[$timestamp] Uploading $file ({$fileSizeMB}MB)...");
 				$startTime = microtime(true);
 
 				$fileHandle = fopen($localFile, 'r');
