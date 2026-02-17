@@ -33,6 +33,11 @@ function task:run { ## Run the upload command
 	deno task upload
 }
 
+function task:clean { ## Run the clean command
+	title "Running clean command"
+	deno task clean
+}
+
 function task:dev { ## Run with development flags
 	title "Running in development mode"
 	deno run --allow-read --allow-write --allow-env --allow-net src/cli.ts
@@ -45,7 +50,12 @@ function task:shell { ## Open a shell in the Docker container
 
 function task:docker-run { ## Run the CLI in Docker
 	title "Running the container"
-	docker run --rm --volume $PWD/src/uploads:/app/uploads --env-file .env dropbox-backup
+	docker run --rm --volume $PWD/src/uploads:/app/uploads --env-file .env dropbox-backup upload
+}
+
+function task:docker-clean { ## Run the clean command in Docker
+	title "Running clean command in Docker"
+	docker run --rm --env-file .env dropbox-backup clean
 }
 
 # =========================================================

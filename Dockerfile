@@ -12,5 +12,7 @@ COPY src/ ./src/
 # Cache dependencies
 RUN deno install --entrypoint src/cli.ts
 
-# Run the CLI
-CMD ["task", "upload"]
+# Set entrypoint and default command
+# Usage: docker run ... dropbox-backup [upload|clean]
+ENTRYPOINT ["deno", "run", "--allow-read", "--allow-write", "--allow-env", "--allow-net", "src/cli.ts"]
+CMD ["upload"]

@@ -67,16 +67,32 @@ DROPBOX_REFRESH_TOKEN=your_refresh_token_here
 
 ## Usage
 
+### Available Commands
+
+- **upload** - Upload files from local directory to Dropbox (default)
+- **clean** - Keep only the N newest files in Dropbox, delete older ones
+
 ### Run with Deno task
 
 ```bash
+# Upload files
 deno task upload
+
+# Clean old files (keeps 10 newest by default)
+deno task clean
+
+# Clean with custom file count
+DROPBOX_KEEP_FILES=5 deno task clean
 ```
 
 ### Run directly
 
 ```bash
-deno run --allow-read --allow-write --allow-env --allow-net src/cli.ts
+# Upload files
+deno run --allow-read --allow-write --allow-env --allow-net src/cli.ts upload
+
+# Clean old files
+deno run --allow-read --allow-write --allow-env --allow-net src/cli.ts clean
 ```
 
 ## Running with Docker
@@ -84,13 +100,31 @@ deno run --allow-read --allow-write --allow-env --allow-net src/cli.ts
 Build and run with Docker:
 
 ```bash
+# Upload files (default command)
 docker run \
     --rm \
     --volume ./backups:/app/uploads \
     --env DROPBOX_APP_KEY=your_key \
     --env DROPBOX_APP_SECRET=your_secret \
     --env DROPBOX_REFRESH_TOKEN=your_token \
-    futureportal/dropbox-backup:latest
+    futureportal/dropbox-backup:latest upload
+
+# Clean old files (keeps 10 newest)
+docker run \
+    --rm \
+    --env DROPBOX_APP_KEY=your_key \
+    --env DROPBOX_APP_SECRET=your_secret \
+    --env DROPBOX_REFRESH_TOKEN=your_token \
+    futureportal/dropbox-backup:latest clean
+
+# Clean with custom file count
+docker run \
+    --rm \
+    --env DROPBOX_APP_KEY=your_key \
+    --env DROPBOX_APP_SECRET=your_secret \
+    --env DROPBOX_REFRESH_TOKEN=your_token \
+    --env DROPBOX_KEEP_FILES=5 \
+    futureportal/dropbox-backup:latest clean
 ```
 
 ### Docker Compose
@@ -101,7 +135,7 @@ Create a `docker-compose.yml`:
 version: '3'
 
 services:
-  dropbox:
+  dropbox-upload:
     image: futureportal/dropbox-backup:latest
     container_name: dropbox-uploader
     environment:
@@ -110,13 +144,25 @@ services:
       - DROPBOX_REFRESH_TOKEN=${DROPBOX_REFRESH_TOKEN}
     volumes:
       - ./backups:/app/uploads
+    command: ["upload"]
+
+  dropbox-clean:
+    image: futureportal/dropbox-backup:latest
+    container_name: dropbox-cleaner
+    environment:
+      - DROPBOX_APP_KEY=${DROPBOX_APP_KEY}
+      - DROPBOX_APP_SECRET=${DROPBOX_APP_SECRET}
+      - DROPBOX_REFRESH_TOKEN=${DROPBOX_REFRESH_TOKEN}
+      - DROPBOX_KEEP_FILES=10
+    command: ["clean"]
 ```
 
 Then run:
 
 ```bash
-docker compose pull   # Pull latest image
-docker compose up -d  # Run in detached mode
+docker compose pull                    # Pull latest image
+docker compose run dropbox-upload      # Upload files
+docker compose run dropbox-clean       # Clean old files
 ```
 
 ## Project Structure
@@ -127,20 +173,32 @@ src/
 ├── auth/
 │   └── dropbox-token-provider.ts   # OAuth2 token management
 ├── commands/
-│   └── upload-command.ts           # Upload logic
+│   ├── upload-command.ts           # Upload logic
+│   └── clean-command.ts            # Clean logic
 └── uploads/                        # Place files here to upload
 ```
 
 ## How It Works
 
+### Upload Command
+
 1. Scans the `src/uploads` directory for files
 2. Authenticates with Dropbox using refresh token
 3. Uploads each file to your Dropbox app folder:
-   - **Small files** (<150MB): Direct upload via `filesUpload`
-   - **Large files** (≥150MB): Chunked upload via upload session API (8MB chunks)
+   - **Small files** (<100MB): Direct upload via `filesUpload`
+   - **Large files** (≥100MB): Chunked upload via upload session API (8MB chunks)
 4. Shows real-time progress for large files
 5. Deletes local files after successful upload
 6. Reports timestamps and upload times
+
+### Clean Command
+
+1. Authenticates with Dropbox using refresh token
+2. Lists all files in your Dropbox app folder
+3. Sorts files by modification date (newest first)
+4. Keeps the N newest files (configurable via `DROPBOX_KEEP_FILES`, default: 10)
+5. Deletes all older files from Dropbox
+6. Shows which files are kept and deleted
 
 ## Known Limitations
 

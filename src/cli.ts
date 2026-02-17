@@ -4,8 +4,18 @@ import { load } from "@std/dotenv";
 import { join, dirname, fromFileUrl } from "@std/path";
 import { DropboxTokenProvider } from "./auth/dropbox-token-provider.ts";
 import { UploadCommand } from "./commands/upload-command.ts";
+import { CleanCommand } from "./commands/clean-command.ts";
 
 async function main() {
+	// Get command from arguments (default to upload for backward compatibility)
+	const command = Deno.args[0] || "upload";
+
+	if (!["upload", "clean"].includes(command)) {
+		console.error(`Error: Unknown command '${command}'`);
+		console.error("Available commands: upload, clean");
+		Deno.exit(1);
+	}
+
 	// Load environment variables from .env file
 	const moduleDir = dirname(fromFileUrl(import.meta.url));
 	const projectRoot = join(moduleDir, "..");
@@ -34,14 +44,43 @@ async function main() {
 		refreshToken: Deno.env.get("DROPBOX_REFRESH_TOKEN")!,
 	});
 
-	// Create and execute upload command
-	const uploadsDir = Deno.env.get("UPLOADS_DIR") || "/app/uploads";
-	const uploadCommand = new UploadCommand(tokenProvider, {
-		uploadsDir,
-		deleteAfterUpload: true,
-	});
+	let exitCode: number;
 
-	const exitCode = await uploadCommand.execute();
+	switch (command) {
+		case "upload": {
+			// Create and execute upload command
+			const uploadsDir = Deno.env.get("UPLOADS_DIR") || "/app/uploads";
+			const uploadCommand = new UploadCommand(tokenProvider, {
+				uploadsDir,
+				deleteAfterUpload: true,
+			});
+
+			exitCode = await uploadCommand.execute();
+			break;
+		}
+
+		case "clean": {
+			// Create and execute clean command
+			const keepCount = parseInt(Deno.env.get("DROPBOX_KEEP_FILES") || "10", 10);
+
+			if (isNaN(keepCount) || keepCount < 1) {
+				console.error(
+					`Error: Invalid DROPBOX_KEEP_FILES value. Must be a positive number, got: ${Deno.env.get("DROPBOX_KEEP_FILES")}`,
+				);
+				Deno.exit(1);
+			}
+
+			const cleanCommand = new CleanCommand(tokenProvider, { keepCount });
+			exitCode = await cleanCommand.execute();
+			break;
+		}
+
+		default:
+			console.error(`Error: Unknown command '${command}'`);
+			console.error("Available commands: upload, clean");
+			exitCode = 1;
+	}
+
 	Deno.exit(exitCode);
 }
 
